@@ -5,10 +5,12 @@ server {
     proxy_buffering        on;
 
     location /update {
+        # we reject requests without the API key in the Authorization header
         if ($http_authorization != "apikey ${UPDATE_API_KEY}") {
             return 401;
         }
 
+        # we reject requests without the Idempotent-Key header
         if ($http_idempotent_key = "") {
             return 400;
         }
@@ -17,6 +19,7 @@ server {
         proxy_cache            STATIC;
         proxy_set_header       Host $host;
         proxy_cache_valid      any  10m;
+        # here's the magic, we cache requests by the Idempotent-Key header
         proxy_cache_key        $http_idempotent_key;
         proxy_cache_methods    GET HEAD POST;
     }
