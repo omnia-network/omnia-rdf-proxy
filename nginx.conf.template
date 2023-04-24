@@ -1,0 +1,28 @@
+proxy_cache_path  /cache  levels=1:2  keys_zone=STATIC:10m
+inactive=24h  max_size=100m;
+
+server {
+    proxy_buffering        on;
+
+    location /update {
+        if ($http_authorization != "apikey ${UPDATE_API_KEY}") {
+            return 401;
+        }
+
+        if ($http_idempotent_key = "") {
+            return 400;
+        }
+
+        proxy_pass             ${RDF_DB_URL_UPDATE};
+        proxy_cache            STATIC;
+        proxy_set_header       Host $host;
+        proxy_cache_valid      any  10m;
+        proxy_cache_key        $http_idempotent_key;
+        proxy_cache_methods    GET HEAD POST;
+    }
+
+    location /query {
+        proxy_pass             ${RDF_DB_URL_QUERY};
+        proxy_set_header       Host $host;
+    }
+}

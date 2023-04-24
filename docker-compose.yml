@@ -1,0 +1,23 @@
+version: '3.1'
+
+services:
+  rdf_proxy:
+    image: nginx:latest
+    ports:
+      - 8080:80
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template
+      - ./volumes/nginx/cache:/cache
+    environment:
+      RDF_DB_URL_UPDATE: $RDF_DB_URL_UPDATE
+      RDF_DB_URL_QUERY: $RDF_DB_URL_QUERY
+      UPDATE_API_KEY: $UPDATE_API_KEY
+
+  rdf_db:
+    image: ghcr.io/oxigraph/oxigraph:latest
+    ports:
+      - "7878:7878"
+    volumes:
+      - ./volumes/db/data:/data
+    profiles:
+      - dev
